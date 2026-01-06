@@ -6,4 +6,4 @@
 javascript: (() => { <paste_here> })
 ```
 
-replacing `paste_here` with the raw contents of the js file
+replacing `<paste_here>` with the raw contents of the js file
