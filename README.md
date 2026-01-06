@@ -3,7 +3,7 @@
 4. replace the url with
 
 ```
-javascript: (() => { <paste_here> })
+javascript: (() => { <paste_here> })()
 ```
 
 replacing `<paste_here>` with the raw contents of the js file
