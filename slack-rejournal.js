@@ -5,8 +5,8 @@ javascript: (() => {
         const mList = /[?&]v=([^&]+)/.exec(plUrl);
         const extracted =  mList ? mList[1] : null;
         const container = document.getElementsByClassName("c-message_list")[0].getElementsByClassName("c-virtual_list__scroll_container")[0];
-        const headers = container.getElementsByClassName("c-message__sender");
-        const header = headers[headers.length - 1];
+        let headers = container.getElementsByClassName("c-message__sender");
+        let header = headers[headers.length - 1];
         const lastBlock = header.parentElement.getElementsByClassName("p-rich_text_block")[0];
 
         const htmlContent = lastBlock.innerHTML;
@@ -60,7 +60,7 @@ javascript: (() => {
             }
         });
 
-        const textbox = document.getElementsByClassName('ql-editor')[0].children[0];
+        let textbox = document.getElementsByClassName('ql-editor')[0].children[0];
 
         let htmlData = cloned.outerHTML;
         let plainData = cloned.textContent;
@@ -81,5 +81,47 @@ javascript: (() => {
 
         const sendButton = [...document.getElementsByTagName('button')].find(b => b.getAttribute('data-qa') === 'texty_send_button');
         sendButton.click();
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        textbox = document.getElementsByClassName('ql-editor')[0].children[0];
+        const command = "/status :headphones:" + displayText;
+        textbox.textContent = command;
+        await new Promise(resolve => setTimeout(resolve, 100));
+        sendButton.click();
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        headers = container.getElementsByClassName("c-message__sender");
+        header = headers[headers.length - 1];
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        header.parentElement.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 2,
+            buttons: 2
+        }));
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const deleteEvent = new KeyboardEvent('keydown', {
+            key: 'Delete',
+            code: 'Delete',
+            keyCode: 46,
+            which: 46,
+            bubbles: true,
+            cancelable: true
+        });
+
+        (document.activeElement || window).dispatchEvent(deleteEvent);
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const deleteButton = Array.from(document.querySelectorAll('button, a, [role="button"]'))
+            .find(el => el.textContent.trim() === 'Delete');
+        deleteButton.click();
     });
 })()
