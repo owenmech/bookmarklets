@@ -40,7 +40,10 @@ javascript: (() => {
         [...textSections].forEach(section => {
             const emojiIndices = [];
             [...section.childNodes].forEach((child, index) => {
-                if (child.classList && child.classList.contains("c-emoji--inline") && child.children[0].getAttribute("data-stringify-emoji") === DONE_EMOJI) {
+                if (child.tagName === "B") {
+                    child = child.children[0];
+                }
+                if (child && child.classList && child.classList.contains("c-emoji--inline") && child.children[0].getAttribute("data-stringify-emoji") === DONE_EMOJI) {
                     emojiIndices.push(index);
                 }
             });
