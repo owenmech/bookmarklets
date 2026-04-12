@@ -282,8 +282,8 @@ javascript: (function () {
     textInput.type = "text";
     textInput.id = "guess-input";
     textInput.autocomplete = "off";
-    textInput.placeholder = "partial guess... (press [ \\ ] to focus)";
-    textInput.addEventListener("focus", () => {
+    textInput.placeholder = "enter song and/or artist to check...";
+    textInput.addEventListener("input", () => {
         setStatus("none");
     });
     textInput.addEventListener("blur", () => {
@@ -329,9 +329,9 @@ javascript: (function () {
         });
         return el;
     };
-    const playButton = btn("Play [ ⏎ ]");
-    const skipButton = btn("More [ ⌦ ]");
-    const revealButton = btn("Reveal [ = ]");
+    const playButton = btn("Play [ < ]");
+    const skipButton = btn("More [ > ]");
+    const revealButton = btn("Reveal [ ? ]");
 
     const buttonRow = document.createElement("div");
     Object.assign(buttonRow.style, {
@@ -375,12 +375,15 @@ javascript: (function () {
             playButton.style.width = "initial";
             skipButton.style.width = "initial";
             revealButton.style.width = "initial";
+            textInput.disabled = false;
+            textInput.focus();
         } else {
             while (buttonRow.firstChild) {
                 buttonRow.removeChild(buttonRow.firstChild);
             }
             buttonRow.append(nextButton);
             buttonRow.style.justifyContent = "center";
+            textInput.disabled = true;
         }
     };
     const getPage = () => _state;
@@ -716,6 +719,7 @@ javascript: (function () {
     setStatus("none");
     setCurrentLevel(0);
     document.body.appendChild(overlay);
+    textInput.focus();
     let open = true;
 
     function loop() {
@@ -829,34 +833,36 @@ javascript: (function () {
               : "wrong";
         setStatus(status);
 
-        textInput.blur();
+        textInput.focus();
+        textInput.select();
     };
 
     const listener = (e) => {
-        if (e.key === "\\") {
-            if (document.activeElement === textInput) return;
-            textInput.focus();
-            textInput.select();
-            e.preventDefault();
-        } else if (e.key === "Enter") {
-            if (document.activeElement === textInput) {
+        const inputFocused = document.activeElement === textInput;
+
+        if (e.key === "Enter") {
+            e.stopPropagation();
+            if (inputFocused) {
                 checkInput();
-            } else if (getPage() === "guess") {
-                playButton.click();
             } else if (getPage() === "answer") {
                 nextButton.click();
             }
-        } else if (e.key === "Backspace") {
-            if (document.activeElement === textInput) return;
-            skipButton.click();
-        } else if (e.key === "=") {
-            if (document.activeElement === textInput) return;
-            revealButton.click();
-        } else if (e.key === "Escape") {
-            if (document.activeElement === textInput) {
-                textInput.blur();
-            }
+        } else if (e.key === "<" || e.key === ",") {
+            e.stopPropagation();
             e.preventDefault();
+            playButton.click();
+        } else if (e.key === ">" || e.key === ".") {
+            e.stopPropagation();
+            e.preventDefault();
+            if (getPage() === "guess") skipButton.click();
+        } else if (e.key === "?" || e.key === "/") {
+            e.stopPropagation();
+            e.preventDefault();
+            if (getPage() === "guess") revealButton.click();
+        } else if (e.key === "Escape") {
+            textInput.blur();
+            e.preventDefault();
+            e.stopPropagation();
         }
     };
     document.addEventListener("keydown", listener);
