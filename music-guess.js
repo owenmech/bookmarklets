@@ -17,6 +17,20 @@ javascript: (function () {
         fontFamily: "sans-serif",
     });
 
+    const style = document.createElement("style");
+    style.textContent = `
+        .mg-setting-row { display: flex; align-items: center; gap: 12px; cursor: pointer;
+            color: white; font-family: sans-serif; font-size: 14px; user-select: none; }
+        .mg-setting-row input[type="checkbox"] { display: none; }
+        .mg-toggle-track { width: 40px; height: 22px; background: #555; border-radius: 11px;
+            position: relative; transition: background 0.2s; flex-shrink: 0; }
+        .mg-setting-row input:checked ~ .mg-toggle-track { background: #4caf50; }
+        .mg-toggle-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+            background: white; border-radius: 50%; transition: transform 0.2s; }
+        .mg-setting-row input:checked ~ .mg-toggle-track .mg-toggle-thumb { transform: translateX(18px); }
+    `;
+    document.head.appendChild(style);
+
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✕";
     Object.assign(closeBtn.style, {
@@ -38,6 +52,122 @@ javascript: (function () {
         padding: "0",
     });
     overlay.appendChild(closeBtn);
+
+    const settingsBtn = document.createElement("button");
+    settingsBtn.textContent = "⚙";
+    Object.assign(settingsBtn.style, {
+        position: "fixed",
+        top: "20px",
+        left: "20px",
+        zIndex: 100000,
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        border: "none",
+        backgroundColor: "#444",
+        color: "white",
+        fontSize: "20px",
+        cursor: "pointer",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "0",
+    });
+    overlay.appendChild(settingsBtn);
+
+    const settingsPanel = document.createElement("div");
+    Object.assign(settingsPanel.style, {
+        position: "fixed",
+        top: "70px",
+        left: "20px",
+        zIndex: 100000,
+        backgroundColor: "#222",
+        border: "1px solid #555",
+        borderRadius: "8px",
+        padding: "16px",
+        display: "none",
+        minWidth: "200px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+    });
+    const settingsPanelTitle = document.createElement("div");
+    Object.assign(settingsPanelTitle.style, {
+        color: "#aaa",
+        fontSize: "11px",
+        textTransform: "uppercase",
+        letterSpacing: "1px",
+        marginBottom: "12px",
+    });
+    settingsPanelTitle.textContent = "Settings";
+    settingsPanel.appendChild(settingsPanelTitle);
+
+    const titleOnlyLabel = document.createElement("label");
+    titleOnlyLabel.className = "mg-setting-row";
+    const titleOnlyCheckbox = document.createElement("input");
+    titleOnlyCheckbox.type = "checkbox";
+    const toggleTrack = document.createElement("div");
+    toggleTrack.className = "mg-toggle-track";
+    const toggleThumb = document.createElement("div");
+    toggleThumb.className = "mg-toggle-thumb";
+    toggleTrack.appendChild(toggleThumb);
+    const labelText = document.createElement("span");
+    labelText.textContent = "Reveal Artist";
+    titleOnlyLabel.append(titleOnlyCheckbox, toggleTrack, labelText);
+    settingsPanel.appendChild(titleOnlyLabel);
+    overlay.appendChild(settingsPanel);
+
+    settingsBtn.onclick = () => {
+        settingsPanel.style.display =
+            settingsPanel.style.display === "none" ? "block" : "none";
+    };
+
+    const infoSection = document.createElement("div");
+    Object.assign(infoSection.style, {
+        textAlign: "center",
+        width: "50%",
+        marginBottom: "20px",
+    });
+
+    const imgWrapper = document.createElement("div");
+    Object.assign(imgWrapper.style, {
+        borderRadius: "8px",
+        marginBottom: "20px",
+        width: "200px",
+        height: "200px",
+        backgroundColor: "#888",
+        margin: "auto",
+    });
+
+    const img = document.createElement("img");
+    Object.assign(img.style, {
+        borderRadius: "8px",
+        width: "200px",
+        height: "200px",
+        visibility: "hidden",
+    });
+    imgWrapper.appendChild(img);
+
+    const setImgSrc = (src) => {
+        img.src = src || "";
+        img.style.visibility = src ? "visible" : "hidden";
+    };
+
+    const title = document.createElement("h2");
+    title.textContent = "?????";
+    Object.assign(title.style, {
+        margin: "10px 0 5px 0",
+        fontSize: "24px",
+    });
+
+    const artist = document.createElement("p");
+    artist.textContent = "?????";
+    Object.assign(artist.style, {
+        color: "#aaa",
+        margin: "0 0 30px 0",
+        fontSize: "16px",
+    });
+
+    infoSection.append(imgWrapper, title, artist);
+    overlay.appendChild(infoSection);
 
     const guessPage = document.createElement("div");
     guessPage.style.width = "50%";
@@ -104,15 +234,9 @@ javascript: (function () {
     row2.appendChild(textInput);
     row2.appendChild(inputStatus);
 
-    const row3 = document.createElement("div");
-    Object.assign(row3.style, {
-        display: "flex",
-        justifyContent: "space-between",
-        width: "50%",
-        marginLeft: "auto",
-        marginRight: "auto",
-    });
-    const btn = (t) => {
+    guessPage.append(row1, row2);
+
+    const btn = (t, border = false) => {
         const el = document.createElement("button");
         el.innerText = t;
         Object.assign(el.style, {
@@ -124,6 +248,10 @@ javascript: (function () {
             color: "white",
             transition: "backgroundColor 0.15s",
         });
+        if (border) {
+            el.style.border = "2px solid #ccc";
+        }
+
         el.addEventListener("mouseenter", () => {
             el.style.backgroundColor = "#555";
         });
@@ -138,55 +266,61 @@ javascript: (function () {
         });
         return el;
     };
-    const playButton = btn("Play [ ⏎ ]");
-    const skipButton = btn("Skip [ ⌦ ]");
+    const playButton = btn("Play [ ⏎ ]", true);
+    const skipButton = btn("More [ ⌦ ]");
     const revealButton = btn("Reveal [ = ]");
-    row3.append(playButton, skipButton, revealButton);
 
-    guessPage.append(row1, row2, row3);
-
-    const answerPage = document.createElement("div");
-    answerPage.style.textAlign = "center";
-    const img = document.createElement("img");
-    Object.assign(img.style, {
-        borderRadius: "8px",
-        marginBottom: "20px",
-        width: "200px",
-        height: "200px",
-        backgroundColor: "#888",
+    const buttonRow = document.createElement("div");
+    Object.assign(buttonRow.style, {
+        display: "flex",
+        justifyContent: "space-between",
+        width: "25%",
+        marginLeft: "auto",
+        marginRight: "auto",
     });
+    buttonRow.append(playButton, skipButton, revealButton);
+    overlay.appendChild(buttonRow);
 
-    const title = document.createElement("h2");
-    title.textContent = "Song Title";
-    Object.assign(title.style, {
-        margin: "10px 0 5px 0",
-        fontSize: "24px",
-    });
+    const nextButton = btn("Next [ ⏎ ]", true);
 
-    const artist = document.createElement("p");
-    artist.textContent = "Artist Name";
-    Object.assign(artist.style, {
-        color: "#aaa",
-        margin: "0 0 30px 0",
-        fontSize: "16px",
-    });
-
-    const nextButton = btn("Next [ ⏎ ]");
-    nextButton.style.width = "100%";
-
-    answerPage.append(img, title, artist, nextButton);
-
-    overlay.appendChild(answerPage);
-
-    setPage = (page) => {
-        guessPage.style.display = page === "guess" ? "block" : "none";
-        answerPage.style.display = page === "answer" ? "block" : "none";
+    let titleOnly = false;
+    titleOnlyCheckbox.onchange = () => {
+        titleOnly = titleOnlyCheckbox.checked;
+        if (titleOnly && _state === "guess") {
+            fetchCurrentSong();
+            artist.textContent = currentArtist || "?????";
+        } else if (!titleOnly && _state === "guess") {
+            const artistTokens = buildTokens(currentArtist);
+            const artistHasMatch = artistTokens.some((t) =>
+                revealedWords.has(getTokenWord(t)),
+            );
+            artist.textContent = artistHasMatch
+                ? renderTokens(artistTokens, revealedWords)
+                : "?????";
+        }
     };
-    getPage = () => {
-        if (guessPage.style.display === "block") return "guess";
-        if (answerPage.style.display === "block") return "answer";
-        return null;
+
+    let _state = null;
+    setState = (state) => {
+        _state = state;
+        if (state === "guess") {
+            while (buttonRow.firstChild) {
+                buttonRow.removeChild(buttonRow.firstChild);
+            }
+            buttonRow.append(playButton, skipButton, revealButton);
+            buttonRow.style.justifyContent = "space-between";
+            playButton.style.width = "initial";
+            skipButton.style.width = "initial";
+            revealButton.style.width = "initial";
+        } else {
+            while (buttonRow.firstChild) {
+                buttonRow.removeChild(buttonRow.firstChild);
+            }
+            buttonRow.append(nextButton);
+            buttonRow.style.justifyContent = "center";
+        }
     };
+    getPage = () => _state;
     setProgress = (progress) => {
         fill.style.width = progress * 100 + "%";
     };
@@ -231,10 +365,11 @@ javascript: (function () {
             removeNotch(notches.pop());
         }
     };
+    window.clearNotches = clearNotches;
     setStatus = (status) => {
         const statusMap = {
             none: { icon: "⦾", color: "#555", borderColor: "#555" },
-            correct: { icon: "✔", color: "green", borderColor: "green" },
+            correct: { icon: "✔", color: "#00ff00", borderColor: "green" },
             wrong: { icon: "✘", color: "red", borderColor: "red" },
             partial: { icon: "◒", color: "orange", borderColor: "orange" },
         };
@@ -257,13 +392,14 @@ javascript: (function () {
         }
         return _v;
     };
-    const LENGTHS = [0.2, 0.5, 1, 5, 10, 30, 60];
+    const LENGTHS = [0.2, 0.5, 1, 5, 10, 30, 60, 120, 240, 480];
     let _currentLevel = 0;
     const _getLengthForLevel = (level) => {
-        const length = LENGTHS[level] || getVideo().duration;
-        if (!length || isNaN(length) || !isFinite(length)) {
-            return 240;
+        let duration = getVideo().duration;
+        if (!duration || isNaN(duration) || !isFinite(duration)) {
+            duration = 240;
         }
+        const length = Math.min(LENGTHS[level] || Infinity, duration - 1);
         return length;
     };
     const getCurrentLength = () => {
@@ -275,12 +411,11 @@ javascript: (function () {
     const setCurrentLevel = (level) => {
         _currentLevel = level;
         clearNotches();
-        const current = getCurrentLength();
-        let duration = getVideo().duration;
-        if (isNaN(duration) || !isFinite(duration)) {
-            duration = 240;
+        if (!isFinite(_currentLevel)) {
+            return;
         }
-        const end = Math.min(getNextLength(), duration);
+        const current = getCurrentLength();
+        const end = getNextLength();
         addNotch(current / end, `${current.toFixed(1)}s`);
         addNotch(1, `${end.toFixed(1)}s`);
     };
@@ -289,6 +424,10 @@ javascript: (function () {
     };
     const refreshBar = () => {
         setCurrentLevel(_currentLevel);
+        if (titleOnly) {
+            fetchCurrentSong();
+            artist.textContent = currentArtist || "?????";
+        }
     };
     const clearBar = () => {
         clearNotches();
@@ -338,9 +477,6 @@ javascript: (function () {
         if (nowPlayingImage?.src) {
             currentImage = nowPlayingImage.src;
         }
-        title.textContent = currentTitle || "Unknown Title";
-        artist.textContent = currentArtist || "Unknown Artist";
-        img.src = currentImage;
     };
     playButton.onclick = () => {
         getVideo().currentTime = 0;
@@ -353,14 +489,21 @@ javascript: (function () {
     };
     revealButton.onclick = () => {
         fetchCurrentSong();
-        setPage("answer");
+        title.textContent = currentTitle || "Unknown Title";
+        artist.textContent = currentArtist || "Unknown Artist";
+        setImgSrc(currentImage);
+        setState("answer");
         setCurrentLevel(Infinity);
         getVideo().play();
-        setStatus("none");
-        textInput.value = "";
     };
     nextButton.onclick = () => {
-        setPage("guess");
+        setImgSrc("");
+        title.textContent = "?????";
+        artist.textContent = "?????";
+        setState("guess");
+        setStatus("none");
+        textInput.value = "";
+        revealedWords = new Set();
         document.dispatchEvent(
             new KeyboardEvent("keydown", {
                 key: "N",
@@ -371,12 +514,14 @@ javascript: (function () {
         setCurrentLevel(0);
         clearBar();
     };
-    setPage("guess");
+    setState("guess");
     setStatus("none");
     setCurrentLevel(0);
     document.body.appendChild(overlay);
+    let open = true;
 
     function loop() {
+        if (!open) return;
         const v = getVideo();
         if (v.currentTime >= getCurrentLength()) {
             v.pause();
@@ -387,44 +532,104 @@ javascript: (function () {
     }
     requestAnimationFrame(loop);
 
-    const EXCLUDE_WORDS = [
-        "the",
-        "a",
-        "an",
-        "and",
-        "or",
-        "but",
-        "feat",
-        "featuring",
-    ];
+    normalizeString = (str) => {
+        return str
+            .trim()
+            .toLowerCase()
+            .replace(/[^\w\s]|_/g, "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9\s]/g, "");
+    };
+
+    const buildTokens = (str) => {
+        if (!str) return [];
+        const chunks = str.trim().split(/\s+/);
+        const tokens = [];
+        let pending = [];
+        for (const chunk of chunks) {
+            if (/[a-zA-Z0-9]/.test(chunk)) {
+                tokens.push(
+                    pending.length > 0
+                        ? pending.join(" ") + " " + chunk
+                        : chunk,
+                );
+                pending = [];
+            } else {
+                pending.push(chunk);
+            }
+        }
+        if (pending.length > 0) {
+            if (tokens.length > 0)
+                tokens[tokens.length - 1] += " " + pending.join(" ");
+            else tokens.push(pending.join(" "));
+        }
+        return tokens;
+    };
+
+    const getTokenWord = (token) =>
+        normalizeString(token)
+            .split(/\s+/)
+            .filter((w) => w.length > 0)[0] || "";
+
+    const renderTokens = (tokens, revealed) =>
+        tokens
+            .map((token) => {
+                const word = getTokenWord(token);
+                return !word || revealed.has(word)
+                    ? token
+                    : "_".repeat(word.length);
+            })
+            .join(" ");
+
+    let revealedWords = new Set();
+
     checkInput = () => {
         fetchCurrentSong();
-        const guess = textInput.value.trim().replace(/[^\w\s]|_/g, "");
-        if (guess) {
-            const words = guess
-                .toLowerCase()
-                .split(/\s+/)
-                .filter((w) => !EXCLUDE_WORDS.includes(w));
-            const titleWords = currentTitle
-                .toLowerCase()
-                .replace(/[^\w\s]|_/g, "")
-                .split(/\s+/)
-                .filter((w) => w.length > 0 && !EXCLUDE_WORDS.includes(w));
-            const artistWords = currentArtist
-                .toLowerCase()
-                .replace(/[^\w\s]|_/g, "")
-                .split(/\s+/)
-                .filter((w) => w.length > 0 && !EXCLUDE_WORDS.includes(w));
-            const artistMatch = artistWords.some((w) => words.includes(w));
-            const titleMatch = titleWords.some((w) => words.includes(w));
-            const status =
-                titleMatch && artistMatch
-                    ? "correct"
-                    : artistMatch || titleMatch
-                      ? "partial"
-                      : "wrong";
-            setStatus(status);
+        const guess = normalizeString(textInput.value);
+        const guessWords = guess.split(/\s+/).filter((w) => w.length > 0);
+
+        if (guessWords.length === 0) {
+            textInput.blur();
+            return;
         }
+
+        const titleTokens = buildTokens(currentTitle);
+        const artistTokens = buildTokens(currentArtist);
+        const allWords = new Set(
+            (titleOnly ? titleTokens : [...titleTokens, ...artistTokens])
+                .map(getTokenWord)
+                .filter((w) => w.length > 0),
+        );
+
+        guessWords.forEach((w) => revealedWords.add(w));
+
+        const titleHasMatch = titleTokens.some((t) =>
+            revealedWords.has(getTokenWord(t)),
+        );
+        const artistHasMatch = artistTokens.some((t) =>
+            revealedWords.has(getTokenWord(t)),
+        );
+
+        title.textContent = titleHasMatch
+            ? renderTokens(titleTokens, revealedWords)
+            : "?????";
+        artist.textContent = titleOnly
+            ? currentArtist || "?????"
+            : artistHasMatch
+              ? renderTokens(artistTokens, revealedWords)
+              : "?????";
+
+        const allRevealed = [...allWords].every((w) => revealedWords.has(w));
+        const anyMatched = guessWords.some((w) => allWords.has(w));
+
+        const status = allRevealed
+            ? "correct"
+            : anyMatched
+              ? "partial"
+              : "wrong";
+        setStatus(status);
+
         textInput.blur();
     };
 
@@ -446,7 +651,6 @@ javascript: (function () {
             if (document.activeElement === textInput) return;
             skipButton.click();
         } else if (e.key === "=") {
-            if (document.activeElement === textInput) return;
             revealButton.click();
         } else if (e.key === "Escape") {
             if (document.activeElement === textInput) {
@@ -460,5 +664,6 @@ javascript: (function () {
     closeBtn.onclick = () => {
         overlay.remove();
         document.removeEventListener("keydown", listener);
+        open = false;
     };
 })();
