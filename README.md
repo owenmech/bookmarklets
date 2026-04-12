@@ -1,9 +1,7 @@
-1. create a bookmark at any address
-3. edit the bookmark (right click > edit)
-4. replace the url with
+1. go to one of these .js files
+2. at the top, copy the raw file(see image below)
+3. create a bookmark literally anywhere
+4. edit the bookmark (right click > edit)
+5. paste into the `URL` field, overwriting whatever is there.
 
-```
-javascript: (() => { <paste_here> })()
-```
-
-replacing `<paste_here>` with the raw contents of the js file
+![instructions](./resources/instructions.png)

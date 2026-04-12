@@ -249,6 +249,10 @@ javascript: (function () {
         color: "white",
         transition: "backgroundColor 0.15s, borderColor 0.15s",
     });
+    textInput.name = "guess";
+    textInput.type = "text";
+    textInput.id = "guess-input";
+    textInput.autocomplete = "off";
     textInput.placeholder = "partial guess... (press [ \\ ] to focus)";
     textInput.addEventListener("focus", () => {
         setStatus("none");
@@ -503,7 +507,100 @@ javascript: (function () {
         };
     })();
 
-    const adapter = YoutubeAdapter;
+    const AppleAdapter = (() => {
+        let _v = null;
+        const _onPlayCallbacks = [];
+        const _getAudio = () => {
+            if (!_v || !_v.parentElement) {
+                _v = document.querySelector("audio");
+                if (_v) {
+                    _onPlayCallbacks.forEach((cb) =>
+                        _v.addEventListener("play", cb),
+                    );
+                } else {
+                    closeBtn.click();
+                }
+            }
+            return _v;
+        };
+        return {
+            getCurrentSong() {
+                let title = "",
+                    artist = "",
+                    imageUrl = "";
+                const nowPlayingTitle = document.querySelector(
+                    "[data-testid='now-playing-metadata'] .yt-formatted-string",
+                );
+                const nowPlayingArtist = document.querySelector(
+                    "[data-testid='now-playing-metadata'] .subtitle",
+                );
+                if (nowPlayingTitle?.textContent) {
+                    title = nowPlayingTitle.textContent.trim();
+                    artist = nowPlayingArtist?.textContent.trim() || "";
+                }
+                const playerTitle = document.querySelector(
+                    ".yt-simple-endpoint.title .yt-formatted-string",
+                );
+                const playerArtist = document.querySelector(
+                    ".yt-simple-endpoint.byline .yt-formatted-string",
+                );
+                if (playerTitle?.textContent) {
+                    title = playerTitle.textContent.trim();
+                    artist = playerArtist?.textContent.trim() || "";
+                }
+                if (navigator.mediaSession?.metadata) {
+                    const meta = navigator.mediaSession.metadata;
+                    if (meta.title) {
+                        title = meta.title;
+                        artist = meta.artist || "";
+                    }
+                    if (meta.artwork && meta.artwork.length > 0) {
+                        imageUrl = meta.artwork[meta.artwork.length - 1].src;
+                    }
+                }
+                const playerImage =
+                    document.querySelector(".yt-img-shadow img");
+                if (playerImage?.src) {
+                    imageUrl = playerImage.src;
+                }
+                const nowPlayingImage = document.querySelector(
+                    "[data-testid='now-playing-metadata'] img",
+                );
+                if (nowPlayingImage?.src) {
+                    imageUrl = nowPlayingImage.src;
+                }
+                return { title, artist, imageUrl };
+            },
+            getCurrentTime() {
+                return _getAudio().currentTime;
+            },
+            setCurrentTime(t) {
+                _getAudio().currentTime = t;
+            },
+            getDuration() {
+                const d = _getAudio().duration;
+                return !d || isNaN(d) || !isFinite(d) ? 30 : d;
+            },
+            play() {
+                _getAudio().play();
+            },
+            pause() {
+                _getAudio().pause();
+            },
+            onPlay(callback) {
+                _onPlayCallbacks.push(callback);
+                if (_v) _v.addEventListener("play", callback);
+            },
+            nextTrack() {
+                document.getElementsByClassName("next")[0].click();
+            },
+        };
+    })();
+
+    const url = window.location.href;
+    const adapter = url.includes("music.apple.com")
+        ? AppleAdapter
+        : YoutubeAdapter;
 
     const LENGTHS = [0.2, 0.5, 1, 2, 5, 10, 30, 60, 120, 240, 480];
     let _currentLevel = 0;
