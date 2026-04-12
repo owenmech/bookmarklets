@@ -190,6 +190,7 @@ javascript: (function () {
         position: "relative",
         borderRadius: "4px",
         overflow: "hidden",
+        cursor: "pointer",
     });
     const unplayableArea = document.createElement("div");
     Object.assign(unplayableArea.style, {
@@ -198,6 +199,7 @@ javascript: (function () {
         width: "0%",
         height: "100%",
         backgroundColor: "#111",
+        cursor: "not-allowed",
     });
     barBg.appendChild(unplayableArea);
 
@@ -208,9 +210,21 @@ javascript: (function () {
         width: "0%",
         height: "100%",
         backgroundColor: "rgb(0, 186, 215)",
+        cursor: "pointer",
     });
     barBg.appendChild(fill);
     row1.appendChild(barBg);
+
+    barBg.addEventListener("click", (e) => {
+        const fraction = e.offsetX / barBg.offsetWidth;
+        const playable = getCurrentLength() / getNextLength();
+        if (fraction > playable) return;
+        getVideo().currentTime = fraction * getNextLength();
+    });
+    unplayableArea.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
 
     const row2 = document.createElement("div");
     Object.assign(row2.style, {
@@ -435,7 +449,7 @@ javascript: (function () {
         const end = getNextLength();
         unplayableArea.style.width = (1 - current / end) * 100 + "%";
         addNotch(current / end, `${current.toFixed(current < 1 ? 1 : 0)}s`);
-        addNotch(1, `More = ${end.toFixed(end < 1 ? 1 : 0)}s`);
+        addNotch(1, `${end.toFixed(end < 1 ? 1 : 0)}s`);
     };
     const nextlevel = () => {
         setCurrentLevel(_currentLevel + 1);
