@@ -219,6 +219,7 @@ javascript: (function () {
         const fraction = e.offsetX / barBg.offsetWidth;
         const playable = getCurrentLength() / getNextLength();
         if (fraction > playable) return;
+        console.log(fraction);
         getVideo().currentTime = fraction * getNextLength();
     });
     unplayableArea.addEventListener("click", (e) => {
@@ -268,9 +269,9 @@ javascript: (function () {
 
     guessPage.append(row1, row2);
 
-    const btn = (t) => {
+    const btn = (text) => {
         const el = document.createElement("button");
-        el.innerText = t;
+        el.textContent = text;
         Object.assign(el.style, {
             padding: "8px 16px",
             cursor: "pointer",
@@ -304,22 +305,22 @@ javascript: (function () {
     Object.assign(buttonRow.style, {
         display: "flex",
         justifyContent: "space-between",
-        width: "25%",
+        width: "50%",
         marginLeft: "auto",
         marginRight: "auto",
     });
     buttonRow.append(playButton, skipButton, revealButton);
-    overlay.appendChild(buttonRow);
+    guessPage.appendChild(buttonRow);
 
     const nextButton = btn("Next Song [ ⏎ ]");
 
     let titleOnly = false;
     titleOnlyCheckbox.onchange = () => {
         titleOnly = titleOnlyCheckbox.checked;
-        if (titleOnly && _state === "guess") {
+        if (titleOnly && getPage() === "guess") {
             fetchCurrentSong();
             artist.textContent = currentArtist || "?????";
-        } else if (!titleOnly && _state === "guess") {
+        } else if (!titleOnly && getPage() === "guess") {
             const artistTokens = buildTokens(currentArtist);
             const artistHasMatch = artistTokens.some((t) =>
                 revealedWords.has(getTokenWord(t)),
@@ -331,7 +332,7 @@ javascript: (function () {
     };
 
     let _state = null;
-    setState = (state) => {
+    const setPage = (state) => {
         _state = state;
         if (state === "guess") {
             while (buttonRow.firstChild) {
@@ -350,12 +351,12 @@ javascript: (function () {
             buttonRow.style.justifyContent = "center";
         }
     };
-    getPage = () => _state;
-    setProgress = (progress) => {
+    const getPage = () => _state;
+    const setProgress = (progress) => {
         fill.style.width = progress * 100 + "%";
     };
     const notches = [];
-    addNotch = (progress, text) => {
+    const addNotch = (progress, text) => {
         const label = document.createElement("div");
         label.textContent = text || progress.toFixed(1);
         Object.assign(label.style, {
@@ -386,17 +387,16 @@ javascript: (function () {
         notches.push(notch);
         return notch;
     };
-    removeNotch = (notchObj) => {
+    const removeNotch = (notchObj) => {
         notchObj.mark.remove();
         notchObj.label.remove();
     };
-    clearNotches = () => {
+    const clearNotches = () => {
         while (notches.length > 0) {
             removeNotch(notches.pop());
         }
     };
-    window.clearNotches = clearNotches;
-    setStatus = (status) => {
+    const setStatus = (status) => {
         const statusMap = {
             none: { icon: "⦾", color: "#555", borderColor: "#555" },
             correct: { icon: "✔", color: "#00ff00", borderColor: "green" },
@@ -412,9 +412,9 @@ javascript: (function () {
         }
     };
 
-    let _v = null;
+    _v = null;
     const getVideo = () => {
-        if (!_v) {
+        if (!_v || !_v.parentElement) {
             _v = document.querySelector("video");
             _v.addEventListener("play", () => {
                 refreshBar();
@@ -427,7 +427,7 @@ javascript: (function () {
     const _getLengthForLevel = (level) => {
         let duration = getVideo().duration;
         if (!duration || isNaN(duration) || !isFinite(duration)) {
-            duration = 240;
+            duration = 30;
         }
         const length = Math.min(LENGTHS[level] || Infinity, duration - 1);
         return length;
@@ -451,7 +451,7 @@ javascript: (function () {
         addNotch(current / end, `${current.toFixed(current < 1 ? 1 : 0)}s`);
         addNotch(1, `${end.toFixed(end < 1 ? 1 : 0)}s`);
     };
-    const nextlevel = () => {
+    const nextLevel = () => {
         setCurrentLevel(_currentLevel + 1);
     };
     const refreshBar = () => {
@@ -460,10 +460,6 @@ javascript: (function () {
             fetchCurrentSong();
             artist.textContent = currentArtist || "?????";
         }
-    };
-    const clearBar = () => {
-        clearNotches();
-        setProgress(0);
     };
     let currentTitle = "";
     let currentArtist = "";
@@ -516,7 +512,7 @@ javascript: (function () {
         getVideo().play();
     };
     skipButton.onclick = () => {
-        nextlevel();
+        nextLevel();
         getVideo().play();
     };
     revealButton.onclick = () => {
@@ -524,7 +520,7 @@ javascript: (function () {
         title.textContent = currentTitle || "Unknown Title";
         artist.textContent = currentArtist || "Unknown Artist";
         setImgSrc(currentImage);
-        setState("answer");
+        setPage("answer");
         setCurrentLevel(Infinity);
         getVideo().play();
     };
@@ -532,7 +528,7 @@ javascript: (function () {
         setImgSrc("");
         title.textContent = "?????";
         artist.textContent = "?????";
-        setState("guess");
+        setPage("guess");
         setStatus("none");
         textInput.value = "";
         revealedWords = new Set();
@@ -544,9 +540,9 @@ javascript: (function () {
             }),
         );
         setCurrentLevel(0);
-        clearBar();
+        setProgress(0);
     };
-    setState("guess");
+    setPage("guess");
     setStatus("none");
     setCurrentLevel(0);
     document.body.appendChild(overlay);
@@ -564,11 +560,10 @@ javascript: (function () {
     }
     requestAnimationFrame(loop);
 
-    normalizeString = (str) => {
+    const normalizeString = (str) => {
         return str
             .trim()
             .toLowerCase()
-            .replace(/[^\w\s]|_/g, "")
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^a-zA-Z0-9\s]/g, "");
@@ -616,7 +611,7 @@ javascript: (function () {
 
     let revealedWords = new Set();
 
-    checkInput = () => {
+    const checkInput = () => {
         fetchCurrentSong();
         const guess = normalizeString(textInput.value);
         const guessWords = guess.split(/\s+/).filter((w) => w.length > 0);
