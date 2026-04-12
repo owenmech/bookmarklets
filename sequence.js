@@ -1,4 +1,7 @@
 javascript: (() => {
+    /*
+     * allows use of numpad with https://humanbenchmark.com/tests/sequence
+     */
     simulateClick = (element) => {
         if (!element) return;
         const rect = element.getBoundingClientRect();

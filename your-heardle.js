@@ -1,4 +1,9 @@
 javascript: (function () {
+    /*
+     * play a music guessing game with your library, playlists, etc.
+     * start playing anything on YouTube or Apple Music, then run this bookmarklet to start the game.
+     */
+
     const overlay = document.createElement("div");
     overlay.id = "ui-overlay";
     Object.assign(overlay.style, {

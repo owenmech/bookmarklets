@@ -1,4 +1,8 @@
 javascript: (() => {
+    /*
+     * a dark mode for the New York Times crossword
+     * definitely doesn't do anything else...
+     */
     const style = document.createElement("style");
 
     style.textContent = `

@@ -1,4 +1,7 @@
 javascript: (() => {
+    /*
+     * continuously scroll to bottom of any page
+     */
     id = window.setInterval(() => {
         window.scrollTo(0, document.body.scrollHeight);
     }, 500);
