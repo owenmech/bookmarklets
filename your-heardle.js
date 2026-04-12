@@ -14,6 +14,7 @@ javascript: (function () {
         height: "100vh",
         backgroundColor: "#000000ff",
         zIndex: 99999,
+        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -21,6 +22,21 @@ javascript: (function () {
         color: "white",
         fontFamily: "sans-serif",
     });
+
+    const FADE_TIME = 0.4;
+    const bgDiv = document.createElement("div");
+    Object.assign(bgDiv.style, {
+        position: "absolute",
+        inset: "0",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        filter: "blur(30px) brightness(0.25)",
+        transform: "scale(1.01)",
+        opacity: "0",
+        transition: `opacity ${FADE_TIME}s`,
+        zIndex: 0,
+    });
+    overlay.appendChild(bgDiv);
 
     const style = document.createElement("style");
     style.textContent = `
@@ -136,6 +152,8 @@ javascript: (function () {
         textAlign: "center",
         width: "50%",
         marginBottom: "20px",
+        position: "relative",
+        zIndex: 1,
     });
 
     const imgWrapper = document.createElement("div");
@@ -144,7 +162,8 @@ javascript: (function () {
         marginBottom: "20px",
         width: "200px",
         height: "200px",
-        backgroundColor: "#888",
+        background:
+            "linear-gradient(135deg, #6b6b6b 0%, #808788 40%, #6b7174 70%, #535757 100%)",
         margin: "auto",
     });
 
@@ -181,7 +200,11 @@ javascript: (function () {
     overlay.appendChild(infoSection);
 
     const guessPage = document.createElement("div");
-    guessPage.style.width = "50%";
+    Object.assign(guessPage.style, {
+        width: "50%",
+        position: "relative",
+        zIndex: 1,
+    });
     overlay.appendChild(guessPage);
 
     const row1 = document.createElement("div");
@@ -193,9 +216,10 @@ javascript: (function () {
         height: "8px",
         backgroundColor: "#444",
         position: "relative",
-        borderRadius: "4px",
+        borderRadius: "8px",
         overflow: "hidden",
         cursor: "pointer",
+        border: "2px solid #808080",
     });
     const unplayableArea = document.createElement("div");
     Object.assign(unplayableArea.style, {
@@ -667,11 +691,16 @@ javascript: (function () {
         title.textContent = currentTitle || "Unknown Title";
         artist.textContent = currentArtist || "Unknown Artist";
         setImgSrc(currentImage);
+        bgDiv.style.backgroundImage = currentImage
+            ? `url("${currentImage}")`
+            : "";
+        bgDiv.style.opacity = currentImage ? "1" : "0";
         setPage("answer");
         setCurrentLevel(Infinity);
         adapter.play();
     };
     nextButton.onclick = () => {
+        bgDiv.style.opacity = "0";
         setImgSrc("");
         title.textContent = "?????";
         artist.textContent = "?????";
