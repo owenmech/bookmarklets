@@ -31,47 +31,53 @@ javascript: (function () {
     `;
     document.head.appendChild(style);
 
+    function styleCornerBtn(btn, { top, right, left, fontSize }) {
+        Object.assign(btn.style, {
+            position: "fixed",
+            top,
+            right,
+            left,
+            zIndex: 100000,
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: "#333",
+            color: "white",
+            fontSize,
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "0",
+            fontWeight: "bold",
+            lineHeight: "1",
+        });
+        btn.addEventListener("mouseenter", () => {
+            btn.style.backgroundColor = "#484848";
+        });
+        btn.addEventListener("mouseleave", () => {
+            btn.style.backgroundColor = "#333";
+        });
+        btn.addEventListener("mousedown", () => {
+            btn.style.backgroundColor = "#666";
+        });
+        btn.addEventListener("mouseup", () => {
+            btn.style.backgroundColor = "#484848";
+        });
+    }
+
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✕";
-    Object.assign(closeBtn.style, {
-        position: "fixed",
-        top: "20px",
-        right: "20px",
-        zIndex: 100000,
-        width: "40px",
-        height: "40px",
-        borderRadius: "50%",
-        border: "none",
-        backgroundColor: "#444",
-        color: "white",
-        fontSize: "24px",
-        cursor: "pointer",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "0",
-    });
+    styleCornerBtn(closeBtn, { top: "20px", right: "20px", fontSize: "24px" });
     overlay.appendChild(closeBtn);
 
     const settingsBtn = document.createElement("button");
     settingsBtn.textContent = "⚙";
-    Object.assign(settingsBtn.style, {
-        position: "fixed",
+    styleCornerBtn(settingsBtn, {
         top: "20px",
         left: "20px",
-        zIndex: 100000,
-        width: "40px",
-        height: "40px",
-        borderRadius: "50%",
-        border: "none",
-        backgroundColor: "#444",
-        color: "white",
         fontSize: "20px",
-        cursor: "pointer",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "0",
     });
     overlay.appendChild(settingsBtn);
 
@@ -180,16 +186,28 @@ javascript: (function () {
     Object.assign(barBg.style, {
         width: "100%",
         height: "8px",
-        backgroundColor: "#333",
+        backgroundColor: "#444",
         position: "relative",
         borderRadius: "4px",
         overflow: "hidden",
     });
-    const fill = document.createElement("div");
-    Object.assign(fill.style, {
+    const unplayableArea = document.createElement("div");
+    Object.assign(unplayableArea.style, {
+        position: "absolute",
+        right: "0",
         width: "0%",
         height: "100%",
-        backgroundColor: "red",
+        backgroundColor: "#111",
+    });
+    barBg.appendChild(unplayableArea);
+
+    const fill = document.createElement("div");
+    Object.assign(fill.style, {
+        position: "absolute",
+        left: "0",
+        width: "0%",
+        height: "100%",
+        backgroundColor: "rgb(0, 186, 215)",
     });
     barBg.appendChild(fill);
     row1.appendChild(barBg);
@@ -236,37 +254,35 @@ javascript: (function () {
 
     guessPage.append(row1, row2);
 
-    const btn = (t, border = false) => {
+    const btn = (t) => {
         const el = document.createElement("button");
         el.innerText = t;
         Object.assign(el.style, {
             padding: "8px 16px",
             cursor: "pointer",
             borderRadius: "4px",
-            border: "none",
-            backgroundColor: "#444",
+            border: "2px solid #666",
+            backgroundColor: "#333",
             color: "white",
             transition: "backgroundColor 0.15s",
+            fontWeight: "bold",
         });
-        if (border) {
-            el.style.border = "2px solid #ccc";
-        }
 
         el.addEventListener("mouseenter", () => {
-            el.style.backgroundColor = "#555";
+            el.style.backgroundColor = "#484848";
         });
         el.addEventListener("mouseleave", () => {
-            el.style.backgroundColor = "#444";
+            el.style.backgroundColor = "#333";
         });
         el.addEventListener("mousedown", () => {
             el.style.backgroundColor = "#666";
         });
         el.addEventListener("mouseup", () => {
-            el.style.backgroundColor = "#555";
+            el.style.backgroundColor = "#484848";
         });
         return el;
     };
-    const playButton = btn("Play [ ⏎ ]", true);
+    const playButton = btn("Play [ ⏎ ]");
     const skipButton = btn("More [ ⌦ ]");
     const revealButton = btn("Reveal [ = ]");
 
@@ -281,7 +297,7 @@ javascript: (function () {
     buttonRow.append(playButton, skipButton, revealButton);
     overlay.appendChild(buttonRow);
 
-    const nextButton = btn("Next [ ⏎ ]", true);
+    const nextButton = btn("Next Song [ ⏎ ]");
 
     let titleOnly = false;
     titleOnlyCheckbox.onchange = () => {
@@ -412,12 +428,14 @@ javascript: (function () {
         _currentLevel = level;
         clearNotches();
         if (!isFinite(_currentLevel)) {
+            unplayableArea.style.width = "0%";
             return;
         }
         const current = getCurrentLength();
         const end = getNextLength();
-        addNotch(current / end, `${current.toFixed(1)}s`);
-        addNotch(1, `${end.toFixed(1)}s`);
+        unplayableArea.style.width = (1 - current / end) * 100 + "%";
+        addNotch(current / end, `${current.toFixed(current < 1 ? 1 : 0)}s`);
+        addNotch(1, `More = ${end.toFixed(end < 1 ? 1 : 0)}s`);
     };
     const nextlevel = () => {
         setCurrentLevel(_currentLevel + 1);
