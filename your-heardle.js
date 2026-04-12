@@ -344,7 +344,7 @@ javascript: (function () {
     buttonRow.append(playButton, skipButton, revealButton);
     guessPage.appendChild(buttonRow);
 
-    const nextButton = btn("Next Song [ ⏎ ]");
+    const nextButton = btn("Next Song [ ⏎ / > ]");
 
     let titleOnly = false;
     titleOnlyCheckbox.onchange = () => {
@@ -841,12 +841,13 @@ javascript: (function () {
         const inputFocused = document.activeElement === textInput;
 
         if (e.key === "Enter") {
-            e.stopPropagation();
             if (inputFocused) {
                 checkInput();
             } else if (getPage() === "answer") {
                 nextButton.click();
             }
+            e.stopPropagation();
+            e.preventDefault();
         } else if (e.key === "<" || e.key === ",") {
             e.stopPropagation();
             e.preventDefault();
@@ -855,6 +856,7 @@ javascript: (function () {
             e.stopPropagation();
             e.preventDefault();
             if (getPage() === "guess") skipButton.click();
+            else nextButton.click();
         } else if (e.key === "?" || e.key === "/") {
             e.stopPropagation();
             e.preventDefault();
