@@ -251,8 +251,7 @@ javascript: (function () {
     });
     textInput.placeholder = "partial guess... (press [ \\ ] to focus)";
     textInput.addEventListener("focus", () => {
-        textInput.style.backgroundColor = "#333";
-        textInput.style.borderColor = "#555";
+        setStatus("none");
     });
     textInput.addEventListener("blur", () => {
         textInput.style.backgroundColor = "#222";
@@ -422,7 +421,7 @@ javascript: (function () {
         }
         return _v;
     };
-    const LENGTHS = [0.2, 0.5, 1, 5, 10, 30, 60, 120, 240, 480];
+    const LENGTHS = [0.2, 0.5, 1, 2, 5, 10, 30, 60, 120, 240, 480];
     let _currentLevel = 0;
     const _getLengthForLevel = (level) => {
         let duration = getVideo().duration;
