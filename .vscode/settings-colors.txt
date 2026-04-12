@@ -1,0 +1,16 @@
+{
+    "slots": {
+        "highlight": "#7bb6ff",
+        "border": "#faf5f5",
+        "focus": "#10488d",
+        "active": "#042e63",
+        "panel": "#2d2e2f",
+        "deep": "#1a1a1b"
+    },
+    "overrides": {
+        "activityBar.background": "#046322",
+        "titleBar.activeBackground": "#630404",
+        "titleBar.inactiveBackground": "#630404",
+        "statusBar.background": "#635e04"
+    }
+}
