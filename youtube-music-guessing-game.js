@@ -220,7 +220,7 @@ javascript: (function () {
         const playable = getCurrentLength() / getNextLength();
         if (fraction > playable) return;
         console.log(fraction);
-        getVideo().currentTime = fraction * getNextLength();
+        adapter.setCurrentTime(fraction * getNextLength());
     });
     unplayableArea.addEventListener("click", (e) => {
         e.preventDefault();
@@ -411,23 +411,104 @@ javascript: (function () {
         }
     };
 
-    _v = null;
-    const getVideo = () => {
-        if (!_v || !_v.parentElement) {
-            _v = document.querySelector("video");
-            _v.addEventListener("play", () => {
-                refreshBar();
-            });
-        }
-        return _v;
-    };
+    const YoutubeAdapter = (() => {
+        let _v = null;
+        const _onPlayCallbacks = [];
+        const _getVideo = () => {
+            if (!_v || !_v.parentElement) {
+                _v = document.querySelector("video");
+                _onPlayCallbacks.forEach((cb) =>
+                    _v.addEventListener("play", cb),
+                );
+            }
+            return _v;
+        };
+        return {
+            getCurrentSong() {
+                let title = "",
+                    artist = "",
+                    imageUrl = "";
+                const nowPlayingTitle = document.querySelector(
+                    "[data-testid='now-playing-metadata'] .yt-formatted-string",
+                );
+                const nowPlayingArtist = document.querySelector(
+                    "[data-testid='now-playing-metadata'] .subtitle",
+                );
+                if (nowPlayingTitle?.textContent) {
+                    title = nowPlayingTitle.textContent.trim();
+                    artist = nowPlayingArtist?.textContent.trim() || "";
+                }
+                const playerTitle = document.querySelector(
+                    ".yt-simple-endpoint.title .yt-formatted-string",
+                );
+                const playerArtist = document.querySelector(
+                    ".yt-simple-endpoint.byline .yt-formatted-string",
+                );
+                if (playerTitle?.textContent) {
+                    title = playerTitle.textContent.trim();
+                    artist = playerArtist?.textContent.trim() || "";
+                }
+                if (navigator.mediaSession?.metadata) {
+                    const meta = navigator.mediaSession.metadata;
+                    if (meta.title) {
+                        title = meta.title;
+                        artist = meta.artist || "";
+                    }
+                    if (meta.artwork && meta.artwork.length > 0) {
+                        imageUrl = meta.artwork[meta.artwork.length - 1].src;
+                    }
+                }
+                const playerImage =
+                    document.querySelector(".yt-img-shadow img");
+                if (playerImage?.src) {
+                    imageUrl = playerImage.src;
+                }
+                const nowPlayingImage = document.querySelector(
+                    "[data-testid='now-playing-metadata'] img",
+                );
+                if (nowPlayingImage?.src) {
+                    imageUrl = nowPlayingImage.src;
+                }
+                return { title, artist, imageUrl };
+            },
+            getCurrentTime() {
+                return _getVideo().currentTime;
+            },
+            setCurrentTime(t) {
+                _getVideo().currentTime = t;
+            },
+            getDuration() {
+                const d = _getVideo().duration;
+                return !d || isNaN(d) || !isFinite(d) ? 30 : d;
+            },
+            play() {
+                _getVideo().play();
+            },
+            pause() {
+                _getVideo().pause();
+            },
+            onPlay(callback) {
+                _onPlayCallbacks.push(callback);
+                if (_v) _v.addEventListener("play", callback);
+            },
+            nextTrack() {
+                document.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        key: "N",
+                        shiftKey: true,
+                        bubbles: true,
+                    }),
+                );
+            },
+        };
+    })();
+
+    const adapter = YoutubeAdapter;
+
     const LENGTHS = [0.2, 0.5, 1, 2, 5, 10, 30, 60, 120, 240, 480];
     let _currentLevel = 0;
     const _getLengthForLevel = (level) => {
-        let duration = getVideo().duration;
-        if (!duration || isNaN(duration) || !isFinite(duration)) {
-            duration = 30;
-        }
+        const duration = adapter.getDuration();
         const length = Math.min(LENGTHS[level] || Infinity, duration - 1);
         return length;
     };
@@ -453,6 +534,15 @@ javascript: (function () {
     const nextLevel = () => {
         setCurrentLevel(_currentLevel + 1);
     };
+    let currentTitle = "";
+    let currentArtist = "";
+    let currentImage = "";
+    const fetchCurrentSong = () => {
+        const song = adapter.getCurrentSong();
+        currentTitle = song.title;
+        currentArtist = song.artist;
+        currentImage = song.imageUrl;
+    };
     const refreshBar = () => {
         setCurrentLevel(_currentLevel);
         if (titleOnly) {
@@ -460,59 +550,15 @@ javascript: (function () {
             artist.textContent = currentArtist || "?????";
         }
     };
-    let currentTitle = "";
-    let currentArtist = "";
-    let currentImage = "";
-    const fetchCurrentSong = () => {
-        const nowPlayingTitle = document.querySelector(
-            "[data-testid='now-playing-metadata'] .yt-formatted-string",
-        );
-        const nowPlayingArtist = document.querySelector(
-            "[data-testid='now-playing-metadata'] .subtitle",
-        );
-        if (nowPlayingTitle?.textContent) {
-            currentTitle = nowPlayingTitle.textContent.trim();
-            currentArtist = nowPlayingArtist?.textContent.trim() || "";
-        }
-        const playerTitle = document.querySelector(
-            ".yt-simple-endpoint.title .yt-formatted-string",
-        );
-        const playerArtist = document.querySelector(
-            ".yt-simple-endpoint.byline .yt-formatted-string",
-        );
-        if (playerTitle?.textContent) {
-            currentTitle = playerTitle.textContent.trim();
-            currentArtist = playerArtist?.textContent.trim() || "";
-        }
-        if (navigator.mediaSession?.metadata) {
-            const meta = navigator.mediaSession.metadata;
-            if (meta.title) {
-                currentTitle = meta.title;
-                currentArtist = meta.artist || "";
-            }
-            if (meta.artwork && meta.artwork.length > 0) {
-                currentImage = meta.artwork[meta.artwork.length - 1].src;
-            }
-        }
-        const playerImage = document.querySelector(".yt-img-shadow img");
-        if (playerImage?.src) {
-            currentImage = playerImage.src;
-        }
-        const nowPlayingImage = document.querySelector(
-            "[data-testid='now-playing-metadata'] img",
-        );
-        if (nowPlayingImage?.src) {
-            currentImage = nowPlayingImage.src;
-        }
-    };
+    adapter.onPlay(refreshBar);
     playButton.onclick = () => {
-        getVideo().currentTime = 0;
+        adapter.setCurrentTime(0);
         setProgress(0);
-        getVideo().play();
+        adapter.play();
     };
     skipButton.onclick = () => {
         nextLevel();
-        getVideo().play();
+        adapter.play();
     };
     revealButton.onclick = () => {
         fetchCurrentSong();
@@ -521,7 +567,7 @@ javascript: (function () {
         setImgSrc(currentImage);
         setPage("answer");
         setCurrentLevel(Infinity);
-        getVideo().play();
+        adapter.play();
     };
     nextButton.onclick = () => {
         setImgSrc("");
@@ -531,13 +577,7 @@ javascript: (function () {
         setStatus("none");
         textInput.value = "";
         revealedWords = new Set();
-        document.dispatchEvent(
-            new KeyboardEvent("keydown", {
-                key: "N",
-                shiftKey: true,
-                bubbles: true,
-            }),
-        );
+        adapter.nextTrack();
         setCurrentLevel(0);
         setProgress(0);
     };
@@ -549,12 +589,14 @@ javascript: (function () {
 
     function loop() {
         if (!open) return;
-        const v = getVideo();
-        if (v.currentTime >= getCurrentLength()) {
-            v.pause();
-            v.currentTime = getCurrentLength();
+        if (adapter.getCurrentTime() >= getCurrentLength()) {
+            adapter.pause();
+            adapter.setCurrentTime(getCurrentLength());
         }
-        setProgress(v.currentTime / getNextLength());
+        setProgress(adapter.getCurrentTime() / getNextLength());
+        if (getPage() === "guess") {
+            document.title = "GUESS THE SONG";
+        }
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -677,6 +719,7 @@ javascript: (function () {
             if (document.activeElement === textInput) return;
             skipButton.click();
         } else if (e.key === "=") {
+            if (document.activeElement === textInput) return;
             revealButton.click();
         } else if (e.key === "Escape") {
             if (document.activeElement === textInput) {
