@@ -540,20 +540,20 @@ javascript: (function () {
     })();
 
     const AppleAdapter = (() => {
-        let _v = null;
+        let _a = null;
         const _onPlayCallbacks = [];
         const _getAudio = () => {
-            if (!_v || !_v.parentElement) {
-                _v = document.querySelector("audio");
-                if (_v) {
+            if (!_a || !_a.parentElement) {
+                _a = document.getElementById("apple-music-player");
+                if (_a) {
                     _onPlayCallbacks.forEach((cb) =>
-                        _v.addEventListener("play", cb),
+                        _a.addEventListener("play", cb),
                     );
                 } else {
                     closeBtn.click();
                 }
             }
-            return _v;
+            return _a;
         };
         return {
             getCurrentSong() {
@@ -621,7 +621,8 @@ javascript: (function () {
             },
             onPlay(callback) {
                 _onPlayCallbacks.push(callback);
-                if (_v) _v.addEventListener("play", callback);
+                const a = _getAudio();
+                if (a) a.addEventListener("play", callback);
             },
             nextTrack() {
                 document.getElementsByClassName("next")[0].click();
