@@ -49,6 +49,11 @@ javascript: (function () {
         .mg-toggle-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
             background: white; border-radius: 50%; transition: transform 0.2s; }
         .mg-setting-row input:checked ~ .mg-toggle-track .mg-toggle-thumb { transform: translateX(18px); }
+        .mg-half-width { width: 50%; }
+        .mg-quarter-width { width: 50%; }
+        @media (orientation: portrait) {
+            .mg-half-width, .mg-quarter-width { width: 90%; }
+        }
     `;
     document.head.appendChild(style);
 
@@ -148,9 +153,9 @@ javascript: (function () {
     };
 
     const infoSection = document.createElement("div");
+    infoSection.className = "mg-half-width";
     Object.assign(infoSection.style, {
         textAlign: "center",
-        width: "50%",
         marginBottom: "20px",
         position: "relative",
         zIndex: 1,
@@ -200,8 +205,8 @@ javascript: (function () {
     overlay.appendChild(infoSection);
 
     const guessPage = document.createElement("div");
+    guessPage.className = "mg-half-width";
     Object.assign(guessPage.style, {
-        width: "50%",
         position: "relative",
         zIndex: 1,
     });
@@ -257,12 +262,12 @@ javascript: (function () {
     });
 
     const row2 = document.createElement("div");
+    row2.className = "mg-quarter-width";
     Object.assign(row2.style, {
         display: "flex",
         alignItems: "center",
         marginBottom: "20px",
         gap: "10px",
-        width: "50%",
         marginLeft: "auto",
         marginRight: "auto",
     });
@@ -334,10 +339,10 @@ javascript: (function () {
     const revealButton = btn("Reveal [ ? ]");
 
     const buttonRow = document.createElement("div");
+    buttonRow.className = "mg-quarter-width";
     Object.assign(buttonRow.style, {
         display: "flex",
         justifyContent: "space-between",
-        width: "50%",
         marginLeft: "auto",
         marginRight: "auto",
     });
