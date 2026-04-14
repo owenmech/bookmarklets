@@ -295,6 +295,7 @@ javascript: (function () {
     textInput.addEventListener("blur", () => {
         textInput.style.backgroundColor = "#222";
     });
+    if (isMobile) textInput.addEventListener("focus", () => textInput.select());
     const inputStatus = document.createElement("span");
     Object.assign(inputStatus.style, {
         fontSize: "20px",
