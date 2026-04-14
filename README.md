@@ -1,4 +1,4 @@
-1. navigate to src/<name-of-bookmarklet>/bookmarklet.js
+1. navigate to `src/name-of-bookmarklet.js` above
 2. at the top, copy the raw file (see image below)
 3. create a bookmark literally anywhere
 4. edit the bookmark (right click > edit)

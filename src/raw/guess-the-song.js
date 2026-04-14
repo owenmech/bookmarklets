@@ -23,6 +23,7 @@ javascript: (function () {
         fontFamily: "sans-serif",
     });
 
+    const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     const FADE_TIME = 0.4;
     const bgDiv = document.createElement("div");
     Object.assign(bgDiv.style, {
@@ -381,7 +382,7 @@ javascript: (function () {
             skipButton.style.width = "initial";
             revealButton.style.width = "initial";
             textInput.disabled = false;
-            textInput.focus();
+            if (!isMobile) textInput.focus();
         } else {
             while (buttonRow.firstChild) {
                 buttonRow.removeChild(buttonRow.firstChild);
@@ -725,7 +726,7 @@ javascript: (function () {
     setStatus("none");
     setCurrentLevel(0);
     document.body.appendChild(overlay);
-    textInput.focus();
+    if (!isMobile) textInput.focus();
     let open = true;
 
     function loop() {
@@ -839,8 +840,7 @@ javascript: (function () {
               : "wrong";
         setStatus(status);
 
-        textInput.focus();
-        textInput.select();
+        if (!isMobile) { textInput.focus(); textInput.select(); }
     };
 
     const listener = (e) => {
