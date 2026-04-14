@@ -23,7 +23,7 @@ javascript: (function () {
         fontFamily: "sans-serif",
     });
 
-    const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const isMobile = navigator.maxTouchPoints > 0 || "ontouchstart" in window;
     const FADE_TIME = 0.4;
     const bgDiv = document.createElement("div");
     Object.assign(bgDiv.style, {
@@ -840,7 +840,12 @@ javascript: (function () {
               : "wrong";
         setStatus(status);
 
-        if (!isMobile) { textInput.focus(); textInput.select(); }
+        if (isMobile) {
+            textInput.blur();
+        } else {
+            textInput.focus();
+            textInput.select();
+        }
     };
 
     const listener = (e) => {
