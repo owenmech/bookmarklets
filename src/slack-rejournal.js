@@ -12,7 +12,7 @@ javascript: (() => {
             .getElementsByClassName("c-message_list")[0]
             .getElementsByClassName("c-virtual_list__scroll_container")[0];
         let headers = container.getElementsByClassName("c-message__sender");
-        let header = headers[headers.length - 1];
+        let header = Array.from(headers).filter(h => h.innerText === "Owen Mech").at(-1);
         const lastBlock =
             header.parentElement.getElementsByClassName("p-rich_text_block")[0];
 
@@ -75,7 +75,7 @@ javascript: (() => {
                     child.classList &&
                     child.classList.contains("c-emoji--inline") &&
                     child.children[0].getAttribute("data-stringify-emoji") ===
-                        DONE_EMOJI
+                    DONE_EMOJI
                 ) {
                     emojiIndices.push(index);
                 }

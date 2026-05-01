@@ -24,7 +24,8 @@ javascript: (() => {
 
     const url = window.location.href;
     const saved = localStorage.getItem("vscode_repo_parent");
-    if (!saved || true) {
+    const ASK_EVERY_TIME = false;
+    if (!saved || ASK_EVERY_TIME) {
         const input = prompt("Repo parent folder:", saved);
         if (!input) return;
         localStorage.setItem("vscode_repo_parent", input);

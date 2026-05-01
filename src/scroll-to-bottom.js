@@ -1,9 +1,17 @@
 javascript: (() => {
     /*
-     * continuously scroll to bottom of any page
+     * continuously scroll to bottom of any page, stepping gradually so
+     * lazy-load triggers (spinners, sentinel elements) are passed through
+     * rather than jumped over
      */
-    id = window.setInterval(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-    }, 500);
-    window.addEventListener("wheel", () => window.clearInterval(id));
+    const STEP = window.innerHeight;
+    let active = true;
+    const tick = () => {
+        if (!active) return;
+        const atBottom = window.scrollY + window.innerHeight >= document.body.scrollHeight - 10;
+        if (!atBottom) window.scrollBy(0, STEP);
+        requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    window.addEventListener("wheel", () => { active = false; });
 })();
